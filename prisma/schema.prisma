@@ -1,0 +1,109 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(uuid()) @db.Uuid
+  email        String   @unique
+  passwordHash String
+  name         String?
+  createdAt    DateTime @default(now())
+
+  readingPhotos ReadingPhoto[]
+  fuelFillUps   FuelFillUp[]
+  usageSegments UsageSegment[]
+  
+  // RELACION NUEVA: Segmentos donde el usuario participó
+  sharedSegments UsageSegment[] @relation("SharedParticipants")
+}
+
+model Vehicle {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String   @unique
+  createdAt DateTime @default(now())
+
+  readingPhotos ReadingPhoto[]
+  fuelFillUps   FuelFillUp[]
+  usageSegments UsageSegment[]
+  
+  // RELACION NUEVA: Viajes frecuentes para este auto
+  standardTrips StandardTrip[]
+}
+
+model ReadingPhoto {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @db.Uuid
+  vehicleId   String   @db.Uuid
+  imagePath   String
+  odometerKm  Decimal  @db.Decimal(12, 3)
+  kmPerLiter  Decimal  @db.Decimal(12, 5)
+  capturedAt  DateTime
+  createdAt   DateTime @default(now())
+
+  user        User     @relation(fields: [userId], references: [id])
+  vehicle     Vehicle  @relation(fields: [vehicleId], references: [id])
+
+  startSegments UsageSegment[] @relation("startReading")
+  endSegments   UsageSegment[] @relation("endReading")
+
+  @@index([vehicleId, capturedAt])
+}
+
+model FuelFillUp {
+  id            String   @id @default(uuid()) @db.Uuid
+  vehicleId     String   @db.Uuid
+  userId        String   @db.Uuid
+  filledAt      DateTime
+  liters        Decimal  @db.Decimal(12, 3)
+  totalCost     Decimal  @db.Decimal(12, 2)
+  pricePerLiter Decimal  @db.Decimal(12, 5)
+  createdAt     DateTime @default(now())
+
+  vehicle Vehicle @relation(fields: [vehicleId], references: [id])
+  user    User    @relation(fields: [userId], references: [id])
+
+  @@index([vehicleId, filledAt])
+}
+
+model UsageSegment {
+  id             String   @id @default(uuid()) @db.Uuid
+  vehicleId      String   @db.Uuid
+  startReadingId String   @db.Uuid
+  endReadingId   String   @db.Uuid
+  userId         String   @db.Uuid
+
+  // NUEVOS CAMPOS AÑADIDOS
+  title          String?  
+  costInPesos    Decimal  @default(0) @db.Decimal(12, 2)
+  isShared       Boolean  @default(false)
+
+  capturedAt     DateTime
+  kmDelta        Decimal  @db.Decimal(12, 3)
+  litrosUsed     Decimal  @db.Decimal(12, 3)
+  createdAt      DateTime @default(now())
+
+  vehicle        Vehicle      @relation(fields: [vehicleId], references: [id])
+  startReading   ReadingPhoto @relation("startReading", fields: [startReadingId], references: [id])
+  endReading     ReadingPhoto @relation("endReading", fields: [endReadingId], references: [id])
+  user           User         @relation(fields: [userId], references: [id])
+
+  // RELACIÓN MUCHOS A MUCHOS PARA COMPARTIR
+  sharedWith     User[]       @relation("SharedParticipants")
+
+  @@index([vehicleId, capturedAt])
+}
+
+// NUEVA TABLA
+model StandardTrip {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String   
+  distanceKm  Decimal  @db.Decimal(12, 3)
+  vehicleId   String   @db.Uuid
+  vehicle     Vehicle  @relation(fields: [vehicleId], references: [id])
+  createdAt   DateTime @default(now())
+}

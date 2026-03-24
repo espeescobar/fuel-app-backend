@@ -1,0 +1,24 @@
+# Dependencias
+node_modules/
+
+# Archivos de entorno y secretos (¡CRÍTICO!)
+.env
+.env.*
+!.env.example # (Si creas un archivo de ejemplo sin contraseñas reales, este sí se sube)
+
+# Carpetas de compilación de TypeScript
+dist/
+build/
+
+# Logs de errores de NPM/Yarn
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Archivos de tu Sistema Operativo (archivos ocultos molestos)
+.DS_Store
+Thumbs.db
+
+# Configuraciones de tu editor de código (opcional)
+.vscode/
+.idea/
