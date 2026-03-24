@@ -214,24 +214,34 @@ reportsRouter.get("/usage-by-user", requireAuth, async (req: AuthRequest, res) =
 // 2. RUTAS PARA ELIMINAR REGISTROS
 // ------------------------------------------------------------------
 
-// Eliminar un viaje (UsageSegment)
+// Eliminar un viaje (UsageSegment) y su odómetro
 reportsRouter.delete("/delete-trip/:id", requireAuth, async (req: AuthRequest, res) => {
   try {
-    await prisma.usageSegment.delete({ where: { id: req.params.id } });
+    const segmentId = req.params.id;
+
+    // 1. Buscamos el viaje ANTES de borrarlo para saber cuál es su "endReadingId" (el odómetro final)
+    const segment = await prisma.usageSegment.findUnique({
+      where: { id: segmentId }
+    });
+
+    if (!segment) {
+      return res.status(404).json({ error: "Viaje no encontrado" });
+    }
+
+    // 2. Borramos el viaje (UsageSegment)
+    await prisma.usageSegment.delete({ 
+      where: { id: segmentId } 
+    });
+
+    // 3. Borramos la lectura del odómetro asociada a ese viaje (ReadingPhoto)
+    // ¡ESTO es lo que hace que el kilometraje baje en tu app!
+    await prisma.readingPhoto.delete({
+      where: { id: segment.endReadingId }
+    });
+
     return res.json({ success: true });
   } catch (error) {
     console.error("Error borrando viaje:", error);
     return res.status(500).json({ error: "No se pudo eliminar el viaje" });
-  }
-});
-
-// Eliminar una carga de bencina (FuelFillUp)
-reportsRouter.delete("/delete-fillup/:id", requireAuth, async (req: AuthRequest, res) => {
-  try {
-    await prisma.fuelFillUp.delete({ where: { id: req.params.id } });
-    return res.json({ success: true });
-  } catch (error) {
-    console.error("Error borrando carga:", error);
-    return res.status(500).json({ error: "No se pudo eliminar la carga" });
   }
 });
