@@ -11,35 +11,44 @@ import { fillupsRouter } from "./routes/fillups";
 import { reportsRouter } from "./routes/reports";
 import { standardTripsRouter } from "./routes/standardTrips"; 
 
-
-
+// Carga las variables de entorno
 dotenv.config();
 
 const app = express();
+
+// 1. EL CORS "NUCLEAR"
 app.use(cors({
-  origin: [
-    'https://fuel-app-frontend-one.vercel.app', // Tu Vercel
-    'http://localhost:3000' // Por si luego pruebas en tu PC
-  ],
+  origin: ['https://fuel-app-frontend-one.vercel.app', 'http://localhost:3000', 'http://localhost:3001'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
   credentials: true
 }));
 
-app.use(express.json());
-app.use(helmet());
+app.options('*', cors());
+
+// 2. HELMET CORREGIDO (El salvavidas)
+// Le decimos a Helmet que permita que otros orígenes lean nuestra API
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" }
+}));
+
+// 3. PARSEO DE JSON (Una sola vez)
 app.use(express.json({ limit: "1mb" }));
 
+// 4. RUTA DE SALUD (Para saber si el server está vivo)
 app.get("/health", (_req, res) => res.json({ ok: true }));
 
+// 5. RUTAS DE TUS CARPETAS
 app.use("/api/auth", authRouter);
 app.use("/api/readings", readingsRouter);
 app.use("/api/fill-ups", fillupsRouter);
 app.use("/api/reports", reportsRouter);
 
+// Usamos el router que importaste arriba para los viajes estándar
 app.use("/api/standard-trips", standardTripsRouter);
 
-
-// 1. Endpoint para obtener los usuarios (para el select de compartir)
+// 6. RUTAS MANUALES
+// Endpoint para obtener los usuarios (para el select de compartir)
 app.get("/api/users", requireAuth, async (req, res) => {
   try {
     const users = await prisma.user.findMany({
@@ -52,27 +61,14 @@ app.get("/api/users", requireAuth, async (req, res) => {
   }
 });
 
-// 2. Endpoint para obtener los viajes frecuentes
-app.get("/api/standard-trips", requireAuth, async (req, res) => {
-  try {
-    const trips = await prisma.standardTrip.findMany({
-      orderBy: { name: 'asc' }
-    });
-    res.json({ items: trips });
-  } catch (error) {
-    res.status(500).json({ error: "Error al obtener viajes estándar" });
-  }
-});
-
-// Manejo de errores (ej: errores de multer/validaciones)
+// 7. MANEJO DE ERRORES GENERALES
 app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   if (err?.message === "invalid_file_type") return res.status(400).json({ error: "invalid_file_type" });
   return res.status(500).json({ error: "server_error" });
 });
 
+// 8. ENCENDIDO DEL SERVIDOR
 const port = Number(process.env.PORT ?? 3001);
 app.listen(port, () => {
-  // eslint-disable-next-line no-console
   console.log(`fuel-app backend listening on :${port}`);
 });
-
