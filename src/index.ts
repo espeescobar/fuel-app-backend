@@ -16,9 +16,17 @@ import { standardTripsRouter } from "./routes/standardTrips";
 dotenv.config();
 
 const app = express();
+app.use(cors({
+  origin: [
+    'https://fuel-app-frontend-one.vercel.app', // Tu Vercel
+    'http://localhost:3000' // Por si luego pruebas en tu PC
+  ],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  credentials: true
+}));
 
+app.use(express.json());
 app.use(helmet());
-app.use(cors({ origin: true }));
 app.use(express.json({ limit: "1mb" }));
 
 app.get("/health", (_req, res) => res.json({ ok: true }));
