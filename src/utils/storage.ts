@@ -24,7 +24,11 @@ export const imageMulterDisk = multer({
   limits: { fileSize: 8 * 1024 * 1024 }, // 8MB
   fileFilter: (_req, file, cb) => {
     const ok = ["image/jpeg", "image/png", "image/webp"].includes(file.mimetype);
-    cb(ok ? null : new Error("invalid_file_type"), ok);
+    if (ok) {
+      cb(null, true);
+    } else {
+      cb(new Error("invalid_file_type") as any, false);
+    }
   }
 });
 
@@ -33,7 +37,11 @@ export const imageMulterMemory = multer({
   limits: { fileSize: 8 * 1024 * 1024 },
   fileFilter: (_req, file, cb) => {
     const ok = ["image/jpeg", "image/png", "image/webp"].includes(file.mimetype);
-    cb(ok ? null : new Error("invalid_file_type"), ok);
+    if (ok) {
+      cb(null, true);
+    } else {
+      cb(new Error("invalid_file_type") as any, false);
+    }
   }
 });
 

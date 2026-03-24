@@ -34,7 +34,7 @@ authRouter.post("/register", async (req, res) => {
 
   const token = jwt.sign({ sub: user.id, email: user.email }, env.JWT_SECRET, {
     expiresIn: env.JWT_EXPIRES_IN ?? "7d"
-  });
+  } as any);
 
   return res.json({ token });
 });
@@ -52,13 +52,13 @@ authRouter.post("/login", async (req, res) => {
 
   const token = jwt.sign({ sub: user.id, email: user.email }, env.JWT_SECRET, {
     expiresIn: env.JWT_EXPIRES_IN ?? "7d"
-  });
+  } as any);
 
   return res.json({ token });
 });
 
 authRouter.get("/me", requireAuth, async (req, res) => {
-  const userId = req.user?.id;
+  const userId = (req as any).user?.id;
   if (!userId) return res.status(401).json({ error: "missing_user" });
 
   const user = await prisma.user.findUnique({ where: { id: userId } });
