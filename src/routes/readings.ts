@@ -34,7 +34,7 @@ readingsRouter.post(
   }
 );
 
-// --- RUTA 2: GUARDAR VIAJE (Ahora la foto es OPCIONAL) ---
+// --- RUTA 2: GUARDAR VIAJE  ---
 readingsRouter.post(
   "/",
   requireAuth,
@@ -132,6 +132,8 @@ readingsRouter.get("/", requireAuth, async (req: AuthRequest, res) => {
 
   const fromRaw = typeof req.query.from === "string" ? req.query.from : undefined;
   const toRaw = typeof req.query.to === "string" ? req.query.to : undefined;
+  
+  // Obtenemos el ID del vehículo compartido
   const vehicleId = await getDefaultVehicleId();
 
   const from = fromRaw ? new Date(fromRaw) : undefined;
@@ -140,7 +142,6 @@ readingsRouter.get("/", requireAuth, async (req: AuthRequest, res) => {
   const readings = await prisma.readingPhoto.findMany({
     where: {
       vehicleId,
-      userId,
       ...(from ? { capturedAt: { ...(to ? { lte: to } : {}), ...(from ? { gte: from } : {}) } } : {}),
       ...(to && !from ? { capturedAt: { lte: to } } : {})
     },
