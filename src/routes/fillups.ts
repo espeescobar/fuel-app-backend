@@ -43,6 +43,7 @@ fillupsRouter.post("/", requireAuth, async (req: AuthRequest, res) => {
 });
 
 fillupsRouter.get("/", requireAuth, async (req: AuthRequest, res) => {
+  // Ya no necesitamos el userId para filtrar, pero validamos que el usuario exista
   const userId = req.user?.id;
   if (!userId) return res.status(401).json({ error: "missing_user" });
 
@@ -56,12 +57,12 @@ fillupsRouter.get("/", requireAuth, async (req: AuthRequest, res) => {
   const fillUps = await prisma.fuelFillUp.findMany({
     where: {
       vehicleId,
-      userId,
+      // userId,  <-- ELIMINAMOS O COMENTAMOS ESTA LÍNEA
       ...(from ? { filledAt: { ...(to ? { lte: to } : {}), ...(from ? { gte: from } : {}) } } : {}),
       ...(to && !from ? { filledAt: { lte: to } } : {})
     },
     orderBy: { filledAt: "desc" },
-    take: 50
+    take: 100 // Aumentamos un poco el límite ya que ahora son datos de todos
   });
 
   return res.json({ items: fillUps });
