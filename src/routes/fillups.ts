@@ -42,7 +42,7 @@ fillupsRouter.post("/", requireAuth, async (req: AuthRequest, res) => {
   const pricePerLiter = totalCost / liters;
   if (pricePerLiter < PRICE_PER_LITER_MIN || pricePerLiter > PRICE_PER_LITER_MAX) {
     return res.status(400).json({
-      error: `El precio por litro quedaría en $${pricePerLiter.toFixed(0)}, lo que no parece real. Si el total era $42.000, escríbelo como 42000 o 42.000.`
+      error: `El precio por litro quedaría en $${pricePerLiter.toFixed(0)}. Debe ser al menos $${PRICE_PER_LITER_MIN} y no superar $${PRICE_PER_LITER_MAX}. Si el total era $42.000, escríbelo como 42000 o 42.000.`
     });
   }
 

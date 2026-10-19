@@ -227,10 +227,22 @@ reportsRouter.delete("/delete-trip/:id", requireAuth, async (req: AuthRequest, r
       return res.status(404).json({ error: "Viaje no encontrado" });
     }
 
-    await prisma.$transaction([
-      prisma.usageSegment.delete({ where: { id: segmentId } }),
-      prisma.readingPhoto.delete({ where: { id: segment.endReadingId } }),
-    ]);
+    await prisma.$transaction(async (tx) => {
+      await tx.usageSegment.delete({ where: { id: segmentId } });
+
+      const remainingSegments = await tx.usageSegment.count({
+        where: {
+          OR: [
+            { startReadingId: segment.endReadingId },
+            { endReadingId: segment.endReadingId }
+          ]
+        }
+      });
+
+      if (remainingSegments === 0) {
+        await tx.readingPhoto.delete({ where: { id: segment.endReadingId } });
+      }
+    });
 
     return res.json({ success: true });
   } catch (error) {

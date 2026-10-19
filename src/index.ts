@@ -18,7 +18,7 @@ const app = express();
 
 // 1. EL CORS "NUCLEAR"
 app.use(cors({
-  origin: ['https://fuel-app-frontend-one.vercel.app', 'http://localhost:3000', 'http://localhost:3001'],
+  origin: ['https://fuel-app-frontend-one.vercel.app', 'http://localhost:3000', 'http://localhost:3001', 'http://localhost:3002'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
   credentials: true

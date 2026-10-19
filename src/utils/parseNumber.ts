@@ -92,5 +92,5 @@ export function parseMoney(raw: unknown): number | null {
   return v !== null && v > 0 ? v : null;
 }
 
-export const PRICE_PER_LITER_MIN = 300;
+export const PRICE_PER_LITER_MIN = 700;
 export const PRICE_PER_LITER_MAX = 4000;
